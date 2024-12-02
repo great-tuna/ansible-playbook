@@ -1,0 +1,15 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: folder2k8s
+  namespace: kube-system
+spec:
+  repo: https://great-tuna.github.io/helm-charts
+  chart: folder2k8s
+  targetNamespace: folder2k8s
+  valuesContent: |-
+    azureKeyVaultSecret:
+      vaultName: {{ k3s_name }}-great-tuna
+    repo: https://github.com/great-tuna/{{ k3s_name }}
+  version: 0.1.1

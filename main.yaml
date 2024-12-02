@@ -1,0 +1,355 @@
+---
+- name: akv
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: Check if logged in to Azure
+    shell: az account show
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    tags: [ never, akv, k3s ]
+
+  - name: akv - get akv2k8s_tenant_id
+    shell: "az keyvault secret show --vault-name great-tuna --name {{ k3s_name }}--akv2k8s-tenant --output json | jq -r .value"
+    register: akv2k8s_tenant_id
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    when:
+    - akv2k8s_tenant_id is not defined
+    - inventory_hostname == (hostvars | json_query("{hosts:*}|hosts[?k3s_name=='" + k3s_name + "'].inventory_hostname") | first())
+    tags: [ never, akv, k3s ]
+  - name: akv - set akv2k8s_tenant_id
+    set_fact:
+      akv2k8s_tenant_id: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[?k3s_name=='\" + k3s_name + \"'].inventory_hostname\") | first())].akv2k8s_tenant_id.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: akv2k8s_tenant_id is not defined or akv2k8s_tenant_id.stdout is defined or akv2k8s_tenant_id.skipped is defined
+    tags: [ never, akv, k3s ]
+
+  - name: akv - get akv2k8s_client_id
+    shell: "az keyvault secret show --vault-name great-tuna --name {{ k3s_name }}--akv2k8s-application-id --output json | jq -r .value"
+    register: akv2k8s_client_id
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    when:
+    - akv2k8s_client_id is not defined
+    - inventory_hostname == (hostvars | json_query("{hosts:*}|hosts[?k3s_name=='" + k3s_name + "'].inventory_hostname") | first())
+    tags: [ never, akv, k3s ]
+  - name: akv - set akv2k8s_client_id
+    set_fact:
+      akv2k8s_client_id: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[?k3s_name=='\" + k3s_name + \"'].inventory_hostname\") | first())].akv2k8s_client_id.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: akv2k8s_client_id is not defined or akv2k8s_client_id.stdout is defined or akv2k8s_client_id.skipped is defined
+    tags: [ never, akv, k3s ]
+
+  - name: akv - get akv2k8s_client_secret
+    shell: "az keyvault secret show --vault-name great-tuna --name {{ k3s_name }}--akv2k8s-password --output json | jq -r .value"
+    register: akv2k8s_client_secret
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    when:
+    - akv2k8s_client_secret is not defined
+    - inventory_hostname == (hostvars | json_query("{hosts:*}|hosts[?k3s_name=='" + k3s_name + "'].inventory_hostname") | first())
+    tags: [ never, akv, k3s ]
+  - name: akv - set akv2k8s_client_secret
+    set_fact:
+      akv2k8s_client_secret: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[?k3s_name=='\" + k3s_name + \"'].inventory_hostname\") | first())].akv2k8s_client_secret.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: akv2k8s_client_secret is not defined or akv2k8s_client_secret.stdout is defined or akv2k8s_client_secret.skipped is defined
+    tags: [ never, akv, k3s ]
+
+  - name: akv - get tailscale_join_key
+    shell: "az keyvault secret show --vault-name {{ k3s_name }}-great-tuna --name tailscale-join-key --output json | jq -r .value"
+    register: tailscale_join_key
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    when:
+    - tailscale_join_key is not defined
+    - inventory_hostname == (hostvars | json_query("{hosts:*}|hosts[?k3s_name=='" + k3s_name + "'].inventory_hostname") | first())
+    tags: [ never, akv, k3s ]
+  - name: akv - set tailscale_join_key
+    set_fact:
+      tailscale_join_key: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[?k3s_name=='\" + k3s_name + \"'].inventory_hostname\") | first())].tailscale_join_key.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: tailscale_join_key is not defined or tailscale_join_key.stdout is defined or tailscale_join_key.skipped is defined
+    tags: [ never, akv, k3s ]
+
+  - name: akv - get k3s_join_token
+    shell: "az keyvault secret show --vault-name {{ k3s_name }}-great-tuna --name k3s-join-token --output json | jq -r .value"
+    register: k3s_join_token
+    become: false
+    delegate_to: localhost
+    changed_when: false
+    when:
+    - k3s_join_token is not defined
+    - inventory_hostname == (hostvars | json_query("{hosts:*}|hosts[?k3s_name=='" + k3s_name + "'].inventory_hostname") | first())
+    tags: [ never, akv, k3s ]
+  - name: akv - set k3s_join_token
+    set_fact:
+      k3s_join_token: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[?k3s_name=='\" + k3s_name + \"'].inventory_hostname\") | first())].k3s_join_token.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: k3s_join_token is not defined or k3s_join_token.stdout is defined or k3s_join_token.skipped is defined
+    tags: [ never, akv, k3s ]
+
+  - name: akv - debug
+    debug:
+      msg: 
+        akv2k8s_tenant_id: "{{ akv2k8s_tenant_id }}"
+        akv2k8s_client_id: "{{ akv2k8s_client_id }}"
+        akv2k8s_client_secret: "{{ akv2k8s_client_secret }}"
+        tailscale_join_key: "{{ tailscale_join_key }}"
+        k3s_join_token: "{{ k3s_join_token }}"
+    tags: [ never, akv ]
+
+- name: jq
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: jq - install packages
+    apt:
+      name:
+      - jq
+      state: latest
+      update_cache: true
+    tags: [ never, jq, k3s ]
+- name: cgroups
+  hosts: all
+  gather_facts: false
+  become: true
+  handlers:
+  - ansible.builtin.reboot:
+      post_reboot_delay: 60
+      reboot_timeout: 600
+    async: 600
+    delay: 60
+    ignore_errors: true
+    listen: reboot
+    name: Reboot host
+    poll: 0
+    register: reboot
+    retries: 3
+    until: reboot is succeeded
+  tasks:
+  - name: cgroups - get ansible_distribution_major_version
+    setup:
+      gather_subset: [ distribution ]
+    tags: [ never, cgroups, k3s ]
+    when: ansible_distribution_major_version is not defined
+  - name: cgroups - get ansible_architecture
+    setup:
+      gather_subset: [ architecture ]
+    tags: [ never, cgroups, k3s ]
+    when: ansible_architecture is not defined
+  - changed_when: false
+    name: cgroups - get root from cmdline.txt
+    register: cmdline
+    shell: |
+      cat /proc/cmdline | sed "s| |\n|g" | grep ^root= | sed "s|\w*=||"
+    tags: [ never, cgroups, k3s ]
+  - name: cgroups - update cmdline.txt and config.txt
+    ansible.builtin.template:
+      dest: "{{ item.path }}"
+      force: "{{ item.force | default(true) }}"
+      group: "{{ item.group | default(item.owner) | default('root') }}"
+      mode: "{{ item.mode | default('0644') }}"
+      owner: "{{ item.owner | default('root') }}"
+      src: "{{ item.src | default((item.path | basename ()) + '.j2')}}"
+    notify:
+    - reboot
+    tags: [ never, cgroups, k3s ]
+    when:
+    - item.architecture == ansible_architecture and item.major_version == ansible_distribution_major_version
+    with_items:
+    - architecture: aarch64
+      path: /boot/cmdline.txt
+      major_version: "11"
+    - architecture: armv7l
+      path: /boot/cmdline.txt
+      major_version: "11"
+    - architecture: aarch64
+      path: /boot/config.txt
+      major_version: "11"
+    - architecture: armv7l
+      path: /boot/config.txt
+      major_version: "11"
+    - architecture: aarch64
+      path: /boot/firmware/cmdline.txt
+      major_version: "12"
+    - architecture: armv7l
+      path: /boot/firmware/cmdline.txt
+      major_version: "12"
+    - architecture: aarch64
+      path: /boot/firmware/config.txt
+      major_version: "12"
+    - architecture: armv7l
+      path: /boot/firmware/config.txt
+      major_version: "12"
+- name: build-essential
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: build-essential - install packages
+    apt:
+      name:
+      - build-essential
+      state: latest
+      update_cache: true
+    tags: [ never, build-essential, infnoise ]
+- name: libusb
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: libusb - install packages
+    apt:
+      name:
+      - libusb-dev
+      state: latest
+      update_cache: true
+    tags: [ never, libusb, infnoise ]
+- name: libftdi
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: libftdi - install packages
+    apt:
+      name:
+      - libftdi-dev
+      state: latest
+      update_cache: true
+    tags: [ never, libftdi, infnoise ]
+- name: infnoise
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: infnoise - get version number
+    shell: curl https://api.github.com/repos/leetronics/infnoise/releases/latest -s | jq .tag_name -r
+    register: infnoise_version
+    changed_when: false
+    tags: [ never, infnoise ]
+  - name: infnoise - create directory
+    file:
+      name: /usr/local/src/infnoise-{{ infnoise_version.stdout }}
+      state: directory
+    tags: [ never, infnoise ]
+  - name: infnoise - download
+    get_url:
+      url: "https://github.com/leetronics/infnoise/archive/refs/tags/{{ infnoise_version.stdout }}.tar.gz"
+      dest: /usr/local/src/infnoise-{{ infnoise_version.stdout }}.tar.gz
+    tags: [ never, infnoise ]
+  - name: infnoise - extract
+    shell: tar -xzf /usr/local/src/infnoise-{{ infnoise_version.stdout }}.tar.gz -C /usr/local/src/infnoise-{{ infnoise_version.stdout }} --strip-components=1
+    args:
+      creates: /usr/local/src/infnoise-{{ infnoise_version.stdout }}/LICENSE
+    tags: [ never, infnoise ]
+  - name: infnoise - make
+    shell: make -f Makefile.linux install
+    args:
+      chdir: /usr/local/src/infnoise-{{ infnoise_version.stdout }}/software
+      creates: /usr/local/sbin/infnoise
+    tags: [ never, infnoise ]
+- name: k3s
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    k3s_architecture: { "x86_64": "", "aarch64": "-arm64" }
+  handlers:
+  - name: Restart K3s
+    ansible.builtin.service:
+      daemon_reload: true
+      name: k3s
+      state: restarted
+    when: k3s_services_state.ansible_facts.services['k3s.service'].state == "running"
+  tasks:
+  - name: k3s - get architecture
+    setup:
+      gather_subset: [ architecture ]
+    tags: [ never, k3s ]
+    when: ansible_architecture is not defined
+  - name: k3s - get network
+    setup:
+      gather_subset: [ network ]
+    tags: [ never, k3s ]
+    when: ansible_default_ipv4 is not defined
+  - name: k3s - get version number
+    shell: curl https://api.github.com/repos/k3s-io/k3s/releases/latest -s | jq .tag_name -r
+    register: k3s_version
+    changed_when: false
+    tags: [ never, k3s ]
+  - name: k3s - download
+    get_url:
+      url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version.stdout }}/k3s{{ k3s_architecture[ansible_architecture] }}
+      dest: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version.stdout }}
+    tags: [ never, k3s ]
+  - name: k3s - link
+    file:
+      src: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version.stdout }}
+      dest: "/usr/local/bin/k3s"
+      mode: 0755
+      state: link
+    tags: [ never, k3s ]
+  - name: k3s - create configuration directories
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+    - /etc/rancher/k3s
+    - /var/lib/rancher/k3s/server/manifests/
+    tags: [ never, k3s ]
+  - name: k3s - update configuration files
+    ansible.builtin.template:
+      dest: "{{ item.path }}"
+      src: "{{ item.src | default((item.path | basename ()) + '.j2')}}"
+      mode: "{{ item.mode | default('0644') }}"
+    notify: Restart K3s
+    with_items:
+    - { path: /etc/rancher/k3s/config.yaml }
+    - { path: /etc/rancher/k3s/registries.yaml }
+    - { path: /etc/systemd/system/k3s.service }
+    - { path: /usr/local/bin/killall-k3s.sh, mode: "0755" }
+    - { path: /usr/local/bin/uninstall-k3s.sh, mode: "0755" }
+    - { path: /var/lib/rancher/k3s/server/manifests/akv2k8s.yaml }
+    - { path: /var/lib/rancher/k3s/server/manifests/cluster-admin.yaml }
+    - { path: /var/lib/rancher/k3s/server/manifests/folder2k8s.yaml }
+    tags: [ never, k3s ]
+    register: k3s_config_files
+  - name: k3s - reload daemon
+    ansible.builtin.service:
+      daemon_reload: true
+    when: k3s_config_files.changed
+    tags: [ never, k3s ]
+  - name: collect facts about system services
+    service_facts:
+    register: k3s_services_state
+    tags: [ never, k3s ]
+  - name: k3s - start service on cluster master
+    ansible.builtin.service:
+      daemon_reload: true
+      enabled: true
+      name: k3s
+      state: started
+    when: k3s_cluster_master
+    tags: [ never, k3s ]
+  - name: k3s - start service on other hosts
+    ansible.builtin.service:
+      daemon_reload: true
+      enabled: true
+      name: k3s
+      state: started
+    when: not k3s_cluster_master
+    tags: [ never, k3s ]

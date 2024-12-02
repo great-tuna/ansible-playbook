@@ -1,0 +1,24 @@
+#!/bin/sh
+set -x
+
+/usr/local/bin/killall-k3s.sh
+
+systemctl disable k3s
+systemctl reset-failed k3s
+systemctl daemon-reload
+
+rm -rf /etc/rancher/k3s
+rm -rf /run/k3s
+rm -rf /run/flannel
+rm -rf /var/lib/rancher/k3s
+rm -rf /var/lib/kubelet
+rm -f /etc/systemd/system/k3s.service
+rm -f /etc/rancher/k3s/config.yaml
+rm -f /usr/local/bin/k3s
+rm -f /usr/local/bin/killall-k3s.sh
+rm -f /usr/local/bin/kubectl
+rm -f /usr/local/bin/crictl
+rm -f /usr/local/bin/ctr
+rm -f /usr/local/bin/killall-k3s.sh
+rm -f /usr/local/bin/uninstall-k3s.sh
+reboot
