@@ -1,4 +1,20 @@
 ---
+- name: jq
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+  - name: jq - install packages
+    delegate_to: localhost
+    apt:
+      name:
+      - jq
+      state: latest
+      update_cache: true
+    tags: [ never, jq, akv, k3s ]
+    when:
+    - inventory_hostname == (hostvars | first())
+
 - name: akv
   hosts: all
   gather_facts: false
@@ -111,18 +127,6 @@
         k3s_join_token: "{{ k3s_join_token }}"
     tags: [ never, akv ]
 
-- name: jq
-  hosts: all
-  gather_facts: false
-  become: true
-  tasks:
-  - name: jq - install packages
-    apt:
-      name:
-      - jq
-      state: latest
-      update_cache: true
-    tags: [ never, jq, k3s ]
 - name: cgroups
   hosts: all
   gather_facts: false
@@ -286,19 +290,31 @@
       gather_subset: [ network ]
     tags: [ never, k3s ]
     when: ansible_default_ipv4 is not defined
-  - name: k3s - get version number
+  - name: k3s - get k3s_version
     shell: curl https://api.github.com/repos/k3s-io/k3s/releases/latest -s | jq .tag_name -r
     register: k3s_version
+    become: false
+    delegate_to: localhost
     changed_when: false
+    when:
+    - k3s_version is not defined
+    - inventory_hostname == (hostvars | first())
+    tags: [ never, k3s ]
+  - name: k3s - set k3s_version
+    set_fact:
+      k3s_version: "{{ hostvars[(hostvars | json_query(\"{hosts:*}|hosts[].inventory_hostname\") | first())].k3s_version.stdout }}"
+    become: false
+    delegate_to: localhost
+    when: k3s_version is not defined or k3s_version.stdout is defined or k3s_version.skipped is defined
     tags: [ never, k3s ]
   - name: k3s - download
     get_url:
-      url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version.stdout }}/k3s{{ k3s_architecture[ansible_architecture] }}
-      dest: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version.stdout }}
+      url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s{{ k3s_architecture[ansible_architecture] }}
+      dest: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version }}
     tags: [ never, k3s ]
   - name: k3s - link
     file:
-      src: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version.stdout }}
+      src: /usr/local/src/k3s-{{ ansible_architecture }}-{{ k3s_version }}
       dest: "/usr/local/bin/k3s"
       mode: 0755
       state: link
