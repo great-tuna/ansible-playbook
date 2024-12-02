@@ -29,5 +29,5 @@ haw:
       k3s_cluster_master: True
   vars:
     cluster_cidr: "10.46.0.0/16"
-    k3s_name: "haw-k3s" 
+    k3s_name: "haw-k3s"
     service_cidr: "10.47.0.0/16"

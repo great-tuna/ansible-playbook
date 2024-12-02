@@ -103,7 +103,7 @@
 
   - name: akv - debug
     debug:
-      msg: 
+      msg:
         akv2k8s_tenant_id: "{{ akv2k8s_tenant_id }}"
         akv2k8s_client_id: "{{ akv2k8s_client_id }}"
         akv2k8s_client_secret: "{{ akv2k8s_client_secret }}"
