@@ -117,16 +117,6 @@
     when: k3s_join_token is not defined or k3s_join_token.stdout is defined or k3s_join_token.skipped is defined
     tags: [ never, akv, k3s ]
 
-  - name: akv - debug
-    debug:
-      msg:
-        akv2k8s_tenant_id: "{{ akv2k8s_tenant_id }}"
-        akv2k8s_client_id: "{{ akv2k8s_client_id }}"
-        akv2k8s_client_secret: "{{ akv2k8s_client_secret }}"
-        tailscale_join_key: "{{ tailscale_join_key }}"
-        k3s_join_token: "{{ k3s_join_token }}"
-    tags: [ never, akv ]
-
 - name: cgroups
   hosts: all
   gather_facts: false
